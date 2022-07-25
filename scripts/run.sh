@@ -1,1 +1,2 @@
-MLFLOW_TRACKING_URI=sqlite:///mlflow.db python scripts/train.py 
+MLFLOW_TRACKING_URI=sqlite:///mlflow.db \
+python scripts/train.py 

@@ -1,4 +1,5 @@
 import os
+import sys
 import torch
 from torch import nn
 
@@ -52,7 +53,7 @@ def test(dataloader, model, loss_fn):
     return test_acc, test_loss
 
 
-def run_training(learning_rate=1e-2, batch_size=64, epochs=3):
+def run_training(epochs=3, learning_rate=1e-2, batch_size=64):
     train_dataloader, test_dataloader = build_dataloaders(batch_size)
     model, signature = build_model()
 
@@ -62,9 +63,9 @@ def run_training(learning_rate=1e-2, batch_size=64, epochs=3):
     best_acc = 0.0
 
     with mlflow.start_run():
+        mlflow.log_param("epochs", epochs)
         mlflow.log_param("learning_rate", learning_rate)
         mlflow.log_param("batch_size", batch_size)
-        mlflow.log_param("epochs", epochs)
 
         for t in range(epochs):
             print(f"Epoch {t+1}\n-------------------------------")
@@ -83,4 +84,8 @@ def run_training(learning_rate=1e-2, batch_size=64, epochs=3):
 
 
 if __name__ == "__main__":
-    run_training()
+    epochs = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+    learning_rate = float(sys.argv[2]) if len(sys.argv) > 2 else 1e-2
+    batch_size = int(sys.argv[3]) if len(sys.argv) > 3 else 64
+
+    run_training(epochs, learning_rate, batch_size)

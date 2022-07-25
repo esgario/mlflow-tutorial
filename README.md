@@ -1,28 +1,6 @@
 # MLFlow Tutorial
 
 Este repositório contém um passo a passo que aborda os principais recursos do MLFlow e foi baseado em um [tutorial](https://mlflow.org/docs/latest/tutorials-and-examples/tutorial.html) da documentação oficial da ferramenta.
-
-## Componentes do MLFlow
-
-### MLFlow Tracking
-
-O MLFlow tracking é um componente que permite ao usuário criar e gerenciar experimentos. Fornece uma API e uma interface de usuário que nos permite salvar e visualizar métricas, parâmetros, modelos e artefatos.
-
-Os resultados dos experimentos realizados com MLFlow são armazenados localmente ou em um servidor remoto. Por padrão, os resultados são armazenados localmente em arquivos dentro do diretório `mlruns`.
-
-Para mais informações, consulte a [documentação](https://mlflow.org/docs/latest/tracking.html).
-
-### MLFlow Projects
-
-
-### MLFlow Models
-
-### Model Registry
-
-O model registry introduz alguns conceitos que facilitam a gestão do ciclo de vida de um modelo de machine learning com o MLFlow. Basicamente os modelos logados recebem um nome, uma versão e uma tag que indica o estágio atual do modelo por exemplo, `Staging`, `Production` ou `Archived`.
-
-Além disso, o model registry fornece uma forma de mantermos o tracking da linhagem do modelo, ou seja, mantém um registro de qual experimento gerou determinado modelo.
-
 ___
 ## Passo a passo
 
@@ -36,14 +14,18 @@ A pasta `scripts` é composta por alguns scripts que nos auxiliarão na realiza�
 
 ### 1. MLFlow Tracking
 
-Primeiro vamos dar uma olhada no componente de tracking do MLFlow e como podemos gerenciar experimentos com ele.
+O MLFlow tracking é um componente que permite ao usuário criar e gerenciar experimentos. Fornece uma API e uma interface de usuário que nos permite salvar e visualizar métricas, parâmetros, modelos e artefatos.
+
+Os resultados dos experimentos realizados com MLFlow são armazenados localmente ou em um servidor remoto. Por padrão, os resultados são armazenados localmente em arquivos dentro do diretório `mlruns`.
+
+Para mais informações, consulte a [documentação](https://mlflow.org/docs/latest/tracking.html).
 
 #### 1.1. Treinando um modelo
 
-Vamos começar treinando uma simples rede neural com o pytorch, para isso basta rodar o script train.py:
+Primeiramente vamos começar treinando uma simples rede neural com o pytorch, para isso basta rodar o script train.py:
 
 ```bash
-$ python scripts/train.py
+$ python scripts/train.py <epochs> <learning_rate> <batch_size>
 ```
 
 Dentro do train.py você encontrará o seguinte trecho de código:
@@ -83,24 +65,28 @@ Agora em um navegador podemos acessar a interface de usuário do MLFlow no ender
 
 Você verá uma tabela com os resultados do experimento similar a esta:
 
-![results](./assets/session-1.ui-1.png)
+![image](./assets/session-1.ui-1.png)
 
 Selecionando o experimento desejado você terá acesso aos gráficos e artefatos gerados durante o treinamento do modelo.
 
 
 ### 2. MLFlow Models e Model Registry
 
-Exemplo de como registrar um modelo e carrega-lo para predição usando o MLFlow Models e o Model Registry.
+O **MLFlow Models** consiste em um formato padrão para empacotamento de modelos de aprendizado de máquina. O formato define uma convenção que permite salvar modelos de diferentes frameworks que podem eventualmente serem servidos ou deployados. Mais informações [aqui](https://mlflow.org/docs/latest/models.html).
 
-Primeiramente devemos nos atentar que a utilização do Model Registry requer que o armazenamento seja feito em um banco de dados. Para isso, utilizaremos o SQLite para a execução deste tutorial.
+O **Model Registry** introduz alguns conceitos que facilitam a gestão do ciclo de vida de um modelo de machine learning com o MLFlow. Basicamente os modelos logados recebem um nome, uma versão e uma tag que indica o estágio atual do modelo por exemplo, `Staging`, `Production` ou `Archived`. Além disso, o model registry fornece uma forma de mantermos o tracking da linhagem do modelo, ou seja, mantém um registro de qual experimento gerou determinado modelo.
+
+Neste exemplo nós mostramos como registrar um modelo e carrega-lo para predição usando o MLFlow Models e o Model Registry. 
+
+>**Importante**: Devemos nos atentar que a utilização do Model Registry requer que o armazenamento seja feito em um banco de dados. Portanto, utilizaremos o SQLite durante a execução deste tutorial.
 
 #### 2.1. Treinando um modelo e logando os resultados no SQLite.
 
-Para treinar o modelo utilizaremos o mesmo script de antes. Com a diferença de que agora nós exportaremos uma variável de ambiente com a URI que apontará para oo nosso banco de dados. Para isso rode os seguintes comandos:
+Para treinar o modelo utilizaremos o mesmo script de antes. Com a diferença de que agora nós exportaremos uma variável de ambiente com a URI que apontará para o nosso banco de dados. Para isso rode os seguintes comandos:
 
 ```bash
 $ export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
-$ python scripts/train.py 
+$ python scripts/train.py <epochs> <learning_rate> <batch_size>
 ```
 
 ou então basta rodar o `run.sh` disponível na pasta `scripts`:
@@ -126,14 +112,23 @@ obs: use `mlflow ui` para ambiente de desenvolvimento e `mlflow serve` para ambi
 
 #### 2.2. Registrando modelo
 
-Após o modelo ter sido logado, nós podemos criar um registro do modelo no Model Registry. Esse registro pode ser feito programaticamente ou via interface de usuário.
+Após o modelo ter sido logado, nós podemos criar um registro do modelo no Model Registry. Esse registro pode ser feito programaticamente ou via interface de usuário. Neste exemplo, vamos utilizar a interface de usuário.
 
-Acesse [este link](https://mlflow.org/docs/latest/model-registry.html#ui-workflow) para ver um exemplo de como registrar um modelo via interface de usuário.
+Primeiro, acesse a interface do MLFlow e selecione o experimento que deseja registrar o modelo. Em seguida, clique em `Register Model` e selecione o modelo que deseja registrar. Veja a imagem abaixo:
 
+![image](./assets/session-2.ui-1.png)
+
+Uma nova janela aparecerá. Digite o nome do modelo que deseja registrar e clique em `Register`. Neste caso o nome do modelo será `pytorch_simplenn_mnist`.
+
+![image](./assets/session-2.ui-2.png)
+
+Pronto, o modelo está registrado.
+
+>Caso tenha dúvidas sobre como realizar esse procedimento acesse [este link](https://mlflow.org/docs/latest/model-registry.html#ui-workflow) para ver um exemplo mais detalhado de como registrar um modelo via interface de usuário.
 
 #### 2.3. Carregando modelo
 
-Para carregar o modelo precisamos do nome e da versão do modelo registrado. Com esses dados em mãos basta chamar o método `load_model` do Model Registry. Por exemplo:
+Para carregar o modelo precisamos do nome e da versão do modelo registrado. Com esses dados em mãos basta chamar o método `load_model` que do framework desejado que o MLFlow buscará automaticamente seu modelo no Model Registry. Por exemplo:
 
 ```python
 import torch
@@ -154,7 +149,9 @@ $ export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
 $ python scripts/predict.py
 ```
 
-Existem diferentes formas de se passar a URI do modelo, por exemplo, você pode passar uma URI do S3 ou então o caminho completo da pasta do modelo. Para mais exemplos de URI veja [este link](https://mlflow.org/docs/latest/python_api/mlflow.pytorch.html#mlflow.pytorch.load_model).
+Se tudo correr bem você verá o resultado de inferência do modelo.
+
+>**Importante**: Existem diferentes formas de se passar a URI do modelo, por exemplo, você pode passar uma URI do S3 ou então o caminho completo da pasta do modelo. Para mais exemplos de URI veja [este link](https://mlflow.org/docs/latest/python_api/mlflow.pytorch.html#mlflow.pytorch.load_model).
 
 #### 2.4. Servindo modelo
 
@@ -163,6 +160,12 @@ Por fim podemos servir diretamente um modelo do Model Registry da seguinte forma
 ```bash
 $ export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
 $ mlflow models serve -m "models:/pytorch_simplenn_mnist/1" --env-manager=local --enable-mlserver --port 6000
+```
+
+Ou
+
+```bash
+$ bash scripts/serving.sh
 ```
 
 ### 3. MLFlow Projects
