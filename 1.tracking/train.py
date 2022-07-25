@@ -54,7 +54,7 @@ def test(dataloader, model, loss_fn):
 
 def run_training(learning_rate=1e-2, batch_size=64, epochs=3):
     train_dataloader, test_dataloader = build_dataloaders(batch_size)
-    model = build_model()
+    model, signature = build_model()
 
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -77,7 +77,7 @@ def run_training(learning_rate=1e-2, batch_size=64, epochs=3):
             if test_acc > best_acc:
                 best_acc = test_acc
                 mlflow.log_metric("best_acc", best_acc, step=t)
-                mlflow.pytorch.log_model(model, "model")
+                mlflow.pytorch.log_model(model, "model", signature=signature)
 
     print("Done!")
 
