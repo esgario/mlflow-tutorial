@@ -1,10 +1,7 @@
 """Fetching and running an MLFlow model from the Model Registry."""
-import sys
-sys.path.insert(0, "../1.tracking")
-
 import torch
 import mlflow.pytorch
-from model import device
+from scripts.model import device
 
 
 model_name = "pytorch_simplenn_mnist"

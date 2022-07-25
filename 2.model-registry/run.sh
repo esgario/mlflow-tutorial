@@ -1,1 +1,0 @@
-MLFLOW_TRACKING_URI=sqlite:///mlflow.db python ../1.tracking/train.py 
