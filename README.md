@@ -12,6 +12,12 @@ A pasta `scripts` é composta por alguns scripts que nos auxiliarão na realiza�
 * predict.py: Script para realizar inferência a partir de um modelo treinado.
 * request.py: Script que faz uma requisição para a API que está servindo o modelo.
 
+Antes de seguir com o tutorial lembre-se de instalar os pacotes necessários:
+    
+```bash
+pip install -r requirements.txt
+```
+
 ### 1. MLFlow Tracking
 
 O MLFlow tracking é um componente que permite ao usuário criar e gerenciar experimentos. Fornece uma API e uma interface de usuário que nos permite salvar e visualizar métricas, parâmetros, modelos e artefatos.
@@ -170,4 +176,32 @@ $ bash scripts/serving.sh
 
 ### 3. MLFlow Projects
 
-Exemplo de como criar um projeto em um formato que seja reproduzível em qualquer plataforma. (Em desenvolvimento)
+Agora que nós temos nosso código de treino, podemos criar um projeto em um formato que seja reproduzível em qualquer plataforma usando o MLFlow Projects. 
+
+#### 3.1. Preparando o MLproject
+
+Para criarmos um novo projeto devemos adicionar um arquivo chamado `MLproject` que deverá conter as especificações do projeto.
+
+```python
+name: Tutorial Project
+
+# Caso queira usar o conda:
+# conda_env: conda.yaml
+
+# No nosso caso usaremos um python env
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      epochs: {type: int, default: 3}
+      learning_rate: {type: float, default: 0.01}
+      batch_size: {type: int, default: 64}
+    command: "python scripts/train.py {epochs} {learning_rate} {batch_size}"
+```
+
+Para mais informações sobre as especificações do arquivo `MLproject` veja [aqui](https://mlflow.org/docs/latest/projects.html).
+
+#### 3.2. Rodando nosso projeto
+
+...
