@@ -23,7 +23,7 @@ if __name__ == "__main__":
     env = sys.argv[1] if len(sys.argv) >= 2 else "local"
 
     if env == "local":
-        endpoint = "http://localhost:8080/invocations"
+        endpoint = "http://localhost:6000/invocations"
 
     elif env == "kubernetes":
         endpoint = "http://localhost:8080/seldon/default/mlflow-model/invocations"
