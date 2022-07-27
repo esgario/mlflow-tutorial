@@ -220,6 +220,12 @@ ou apenas
 $ bash scripts/serving.sh
 ```
 
+Para fazer uma requisição para o modelo basta rodar o script `request.py`:
+
+```bash
+$ python scripts/request.py
+```
+
 #### 3.5. Fazendo deploy local do modelo
 
 [**Importante**] Os comandos a seguir pressupõem que você já tenha instalado o Minikube, o Istioctl e o Kubectl na sua máquina.
