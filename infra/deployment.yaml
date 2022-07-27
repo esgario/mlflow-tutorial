@@ -1,0 +1,26 @@
+apiVersion: machinelearning.seldon.io/v1
+kind: SeldonDeployment
+metadata:
+  name: mlflow-model
+spec:
+  predictors:
+    - name: default
+      replicas: 1
+      annotations:
+        seldon.io/no-engine: "true"
+      graph:
+        name: mlflow-model
+        type: MODEL
+      componentSpecs:
+        - spec:
+            containers:
+              - name: mlflow-model
+                image: my-docker-image
+                imagePullPolicy: IfNotPresent
+                ports:
+                  - containerPort: 8080
+                    name: http
+                    protocol: TCP
+                  - containerPort: 8081
+                    name: grpc
+                    protocol: TCP

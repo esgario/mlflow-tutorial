@@ -75,8 +75,52 @@ Você verá uma tabela com os resultados do experimento similar a esta:
 
 Selecionando o experimento desejado você terá acesso aos gráficos e artefatos gerados durante o treinamento do modelo.
 
+### 2. MLFlow Projects
 
-### 2. MLFlow Models e Model Registry
+Agora que nós temos nosso código de treino, podemos criar um projeto em um formato que seja reproduzível em qualquer plataforma usando o MLFlow Projects. Esse tipo de projeto é útil caso você queira treinar um modelo em cloud por exemplo, no databricks.
+
+#### 2.1. Preparando o MLproject
+
+Para criarmos um novo projeto devemos adicionar um arquivo chamado `MLproject` que deverá conter as especificações do projeto.
+
+```python
+name: Tutorial Project
+
+# Caso queira usar o conda:
+# conda_env: conda.yaml
+
+# No nosso caso usaremos um python env
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      epochs: {type: int, default: 3}
+      learning_rate: {type: float, default: 0.01}
+      batch_size: {type: int, default: 64}
+    command: "python scripts/train.py {epochs} {learning_rate} {batch_size}"
+```
+
+Para mais informações sobre as especificações do arquivo `MLproject` veja [aqui](https://mlflow.org/docs/latest/projects.html).
+
+#### 2.2. Rodando nosso projeto
+
+
+Podemos rodar com o nosso projeto no env local ou deixar o mlflow preparar um env para o nosso projeto usando o `pyenv`. Caso queria usar o `pyenv` veja [esse passo a passo](https://dev.to/womakerscode/instalando-o-python-com-o-pyenv-2dc7) de como instala-lo.
+
+Para rodar o projeto com o pyenv, basta executar o comando:
+
+```bash
+$ mlflow run git@github.com:esgario/mlflow-tutorial.git -P epochs=5 -P learning_rate=0.01 -P batch_size=64
+```
+Ou com o env local:
+```bash
+$  mlflow run git@github.com:esgario/mlflow-tutorial.git --env-manager=local
+```
+>Note que os parâmetros são opcionais, para passar os parâmetros basta colocar o argumento `-P` seguido do nome do parâmetro e o valor desejado.
+
+
+### 3. MLFlow Models e Model Registry
 
 O **MLFlow Models** consiste em um formato padrão para empacotamento de modelos de aprendizado de máquina. O formato define uma convenção que permite salvar modelos de diferentes frameworks que podem eventualmente serem servidos ou deployados. Mais informações [aqui](https://mlflow.org/docs/latest/models.html).
 
@@ -86,7 +130,7 @@ Neste exemplo nós mostramos como registrar um modelo e carrega-lo para prediç�
 
 >**Importante**: Devemos nos atentar que a utilização do Model Registry requer que o armazenamento seja feito em um banco de dados. Portanto, utilizaremos o SQLite durante a execução deste tutorial.
 
-#### 2.1. Treinando um modelo e logando os resultados no SQLite.
+#### 3.1. Treinando um modelo e logando os resultados no SQLite.
 
 Para treinar o modelo utilizaremos o mesmo script de antes. Com a diferença de que agora nós exportaremos uma variável de ambiente com a URI que apontará para o nosso banco de dados. Para isso rode os seguintes comandos:
 
@@ -116,7 +160,7 @@ $ bash scripts/ui.sh
 obs: use `mlflow ui` para ambiente de desenvolvimento e `mlflow serve` para ambiente de produção.
 
 
-#### 2.2. Registrando modelo
+#### 3.2. Registrando modelo
 
 Após o modelo ter sido logado, nós podemos criar um registro do modelo no Model Registry. Esse registro pode ser feito programaticamente ou via interface de usuário. Neste exemplo, vamos utilizar a interface de usuário.
 
@@ -132,7 +176,7 @@ Pronto, o modelo está registrado.
 
 >Caso tenha dúvidas sobre como realizar esse procedimento acesse [este link](https://mlflow.org/docs/latest/model-registry.html#ui-workflow) para ver um exemplo mais detalhado de como registrar um modelo via interface de usuário.
 
-#### 2.3. Carregando modelo
+#### 3.3. Carregando modelo
 
 Para carregar o modelo precisamos do nome e da versão do modelo registrado. Com esses dados em mãos basta chamar o método `load_model` que do framework desejado que o MLFlow buscará automaticamente seu modelo no Model Registry. Por exemplo:
 
@@ -159,7 +203,7 @@ Se tudo correr bem você verá o resultado de inferência do modelo.
 
 >**Importante**: Existem diferentes formas de se passar a URI do modelo, por exemplo, você pode passar uma URI do S3 ou então o caminho completo da pasta do modelo. Para mais exemplos de URI veja [este link](https://mlflow.org/docs/latest/python_api/mlflow.pytorch.html#mlflow.pytorch.load_model).
 
-#### 2.4. Servindo modelo
+#### 3.4. Servindo modelo
 
 Por fim podemos servir diretamente um modelo do Model Registry da seguinte forma:
 
@@ -168,40 +212,70 @@ $ export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
 $ mlflow models serve -m "models:/pytorch_simplenn_mnist/1" --env-manager=local --enable-mlserver --port 6000
 ```
 
-Ou
+ou apenas
 
 ```bash
 $ bash scripts/serving.sh
 ```
 
-### 3. MLFlow Projects
+#### 3.5. Fazendo deploy local do modelo
 
-Agora que nós temos nosso código de treino, podemos criar um projeto em um formato que seja reproduzível em qualquer plataforma usando o MLFlow Projects. 
+[**Importante**] Os comandos a seguir pressupõem que você já tenha instalado o Minikube, o Istioctl e o Kubectl na sua máquina.
 
-#### 3.1. Preparando o MLproject
+```bash
+# Iniciando Minikube
+$ minikube start
 
-Para criarmos um novo projeto devemos adicionar um arquivo chamado `MLproject` que deverá conter as especificações do projeto.
+# Instalando o istioctl
+$ istioctl install --set profile=demo -y
 
-```python
-name: Tutorial Project
+# Habilita istio injection
+$ kubectl label namespace default istio-injection=enabled
 
-# Caso queira usar o conda:
-# conda_env: conda.yaml
+# Aplicando o istio gateway que fará o roteamento das requições para os  modelos.
+$ kubectl apply -f infra/gateway.yaml
 
-# No nosso caso usaremos um python env
-python_env: python_env.yaml
+# Cria um namespace para o seldon-system
+$ kubectl create namespace seldon-system
 
-entry_points:
-  main:
-    parameters:
-      epochs: {type: int, default: 3}
-      learning_rate: {type: float, default: 0.01}
-      batch_size: {type: int, default: 64}
-    command: "python scripts/train.py {epochs} {learning_rate} {batch_size}"
+# Instala o seldon-core-operator
+$ helm install seldon-core seldon-core-operator \
+ --repo https://storage.googleapis.com/seldon-charts \
+ --set usageMetrics.enabled=true \
+ --set istio.enabled=true \
+ --namespace seldon-system
+
+# Checa se o seldon controller está rodando
+$ kubectl get pods -n seldon-system
+
+# Configura o docker para apontar pro minikube
+$ eval $(minikube docker-env)
+
+# Buildando nossa imagem docker com o mlflow
+$ bash scripts/build-docker.sh
+
+# Fazendo deploy do nosso modelo no minikube
+$ kubectl apply -f infra/deployment.yaml
 ```
 
-Para mais informações sobre as especificações do arquivo `MLproject` veja [aqui](https://mlflow.org/docs/latest/projects.html).
+##### Testando o modelo
 
-#### 3.2. Rodando nosso projeto
+Em outro terminal crie um tunnel com o minikube para que o load balancer funcione:
+  
+```bash
+$ minikube tunnel
+```
 
-...
+Por fim precisamos fazer um port-foward para o ingress na porta 8080.
+  
+```bash
+$ kubectl port-forward -n istio-system svc/istio-ingressgateway 8080:80
+```
+
+Pronto! agora já podemos fazer inferência no nosso modelo. Para isso basta rodar o script `request.py` da seguinte forma:
+
+```bash
+$ python scripts/request.py kubernetes
+```
+
+---

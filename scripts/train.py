@@ -78,7 +78,8 @@ def run_training(epochs=3, learning_rate=1e-2, batch_size=64):
             if test_acc > best_acc:
                 best_acc = test_acc
                 mlflow.log_metric("best_acc", best_acc, step=t)
-                mlflow.pytorch.log_model(model, "model", signature=signature, code_paths=["scripts/model.py"])
+                mlflow.pytorch.log_model(model.cpu(), "model", signature=signature, code_paths=["scripts/model.py"])
+                model.to(device)
 
     print("Done!")
 
