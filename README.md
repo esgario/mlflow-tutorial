@@ -4,13 +4,15 @@ Este repositório contém um passo a passo que aborda os principais recursos do 
 ___
 ## Passo a passo
 
+### Materiais
+
 A pasta `scripts` é composta por alguns scripts que nos auxiliarão na realização do tutorial. Abaixo temos uma descrição de cada um deles:
 
-* dataset.py: Contém a função que carrega os dataloaders que servirão para treinar e testar o modelo.
-* model.py: Contém a função que cria o modelo.
-* train.py: Script principal com a função de treino do modelo. É dentro deste script que logamos as métricas e os parâmetros com o MLFlow tracking.
-* predict.py: Script para realizar inferência a partir de um modelo treinado.
-* request.py: Script que faz uma requisição para a API que está servindo o modelo.
+* [dataset.py](scripts/dataset.py): Contém a função que carrega os dataloaders que servirão para treinar e testar o modelo.
+* [model.py](scripts/model.py): Contém a função que cria o modelo.
+* [train.py](scripts/train.py): Script principal com a função de treino do modelo. É dentro deste script que logamos as métricas e os parâmetros com o MLFlow tracking.
+* [predict.py](scripts/predict.py): Script que carrega e faz inferência usando o modelo treinado.
+* [request.py](scripts/request.py): Script que faz uma requisição para a API que está servindo o modelo.
 
 Antes de seguir com o tutorial lembre-se de instalar os pacotes necessários:
     
